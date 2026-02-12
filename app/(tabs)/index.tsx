@@ -1,98 +1,102 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as SQLite from 'expo-sqlite';
+import { Button, FlatList, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { createMergeableStore } from 'tinybase/mergeable-store';
+import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
+import { useCreateMergeableStore, useCreatePersister, useProvideStore, useRow, useRowIds, useStore } from 'tinybase/ui-react';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const TABLE_NAME = "tasks";
+const TEXT_CELL = "text";
+const DONE_CELL = "done";
+
+function AddTask() {
+  const store = useStore(TABLE_NAME);
+  const handleAddTask = () => {
+    store?.addRow(TABLE_NAME, {
+      [TEXT_CELL]: getRandomTask(),
+      [DONE_CELL]: false,
+    });
+  };
+  return <Button title="Add Task" onPress={handleAddTask} />;
+}
+
+function TaskList() {
+  const rowIds = useRowIds(TABLE_NAME, TABLE_NAME);
+  return (
+    <FlatList
+      data={rowIds}
+      renderItem={({ item: id }) => <TaskRow id={id} />}
+    />
+  )
+}
+
+function TaskRow({ id }: { id: string }) {
+  const row = useRow(TABLE_NAME, id, TABLE_NAME);
+  const store = useStore(TABLE_NAME);
+  return (
+    <Pressable
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+      onPress={() => store?.delRow(TABLE_NAME, id)}
+    >
+      <Text style={{ color: 'white' }}>{id} - {row?.[TEXT_CELL]}</Text>
+    </Pressable>
+  )
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const store = useCreateMergeableStore(() => createMergeableStore());
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useCreatePersister(store, (store) =>
+    createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
+    [],
+    (persister) => persister.load().then(persister.startAutoSave)
+  );
+  useProvideStore(TABLE_NAME, store);
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#5AC8FB', '#2459D8']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <ImageBackground
+        source={require('@/assets/images/bg.png')}
+        resizeMode='cover'
+        style={{ flex: 1 }}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={styles.content}>
+            <Text style={styles.title}>Sodaholic</Text>
+            <AddTask />
+            <TaskList />
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
   );
 }
 
+const getRandomTask = () => {
+  const tasts = ["Do the laundry", "Buy groceries", "Clean the house", "Finish the project", "Call a friend"];
+  return tasts[Math.floor(Math.random() * tasts.length)];
+}
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+  }
 });
