@@ -1,57 +1,36 @@
+import store from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SQLite from 'expo-sqlite';
-import { Button, FlatList, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { createMergeableStore } from 'tinybase/mergeable-store';
+import { ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
-import { useCreateMergeableStore, useCreatePersister, useProvideStore, useRow, useRowIds, useStore } from 'tinybase/ui-react';
+import { useCreatePersister, useRow, useRowIds } from 'tinybase/ui-react';
 
-const TABLE_NAME = "tasks";
-const TEXT_CELL = "text";
-const DONE_CELL = "done";
+console.log('store', store.getTables(), '-------');
 
-function AddTask() {
-  const store = useStore(TABLE_NAME);
-  const handleAddTask = () => {
-    store?.addRow(TABLE_NAME, {
-      [TEXT_CELL]: getRandomTask(),
-      [DONE_CELL]: false,
-    });
-  };
-  return <Button title="Add Task" onPress={handleAddTask} />;
-}
+function DrinkItem({ id }: { id: string }) {
+  const drink = useRow('drinks', id);
 
-function TaskList() {
-  const rowIds = useRowIds(TABLE_NAME, TABLE_NAME);
+  console.log(id, '-------');
+
   return (
-    <FlatList
-      data={rowIds}
-      renderItem={({ item: id }) => <TaskRow id={id} />}
-    />
-  )
-}
-
-function TaskRow({ id }: { id: string }) {
-  const row = useRow(TABLE_NAME, id, TABLE_NAME);
-  const store = useStore(TABLE_NAME);
-  return (
-    <Pressable
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
-      onPress={() => store?.delRow(TABLE_NAME, id)}
-    >
-      <Text style={{ color: 'white' }}>{id} - {row?.[TEXT_CELL]}</Text>
+    <Pressable onPress={() => store.delRow('drinks', id)}>
+      <Text style={{ color: 'red', fontSize: 20 }}>{drink.name}</Text>
     </Pressable>
   )
 }
 
+
 export default function HomeScreen() {
-  const store = useCreateMergeableStore(() => createMergeableStore());
+  const drinksIds = useRowIds('drinks');
 
   useCreatePersister(store, (store) =>
     createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
     [],
-    (persister) => persister.load().then(persister.startAutoSave)
+    async (persister) => {
+      await persister.load();
+      await persister.startAutoSave();
+    }
   );
-  useProvideStore(TABLE_NAME, store);
 
   return (
     <View style={styles.container}>
@@ -69,18 +48,12 @@ export default function HomeScreen() {
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.content}>
             <Text style={styles.title}>Sodaholic</Text>
-            <AddTask />
-            <TaskList />
+            {drinksIds.map(id => <DrinkItem key={id} id={id} />)}
           </View>
         </SafeAreaView>
       </ImageBackground>
     </View>
   );
-}
-
-const getRandomTask = () => {
-  const tasts = ["Do the laundry", "Buy groceries", "Clean the house", "Finish the project", "Call a friend"];
-  return tasts[Math.floor(Math.random() * tasts.length)];
 }
 
 const styles = StyleSheet.create({
