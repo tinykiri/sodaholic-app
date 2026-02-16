@@ -1,28 +1,49 @@
 import store from '@/store/store';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { Provider as TinyBaseProvider } from 'tinybase/ui-react';
+import { Provider as TinyBaseProvider, useCreatePersister } from 'tinybase/ui-react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import UnitToggle from '@/components/unit-toggle';
+import * as SQLite from 'expo-sqlite';
+import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+
+  useCreatePersister(store, (store) =>
+    createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
+    [],
+    async (persister) => {
+      await persister.load();
+      await persister.startAutoSave();
+    }
+  );
 
   return (
     <TinyBaseProvider store={store}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <UnitToggle />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: true,
+              headerTitleAlign: 'center',
+              headerTitle: 'Sodaholic',
+              headerRight: () => {
+                return <UnitToggle />;
+              },
+            }}
+          />
+          <Stack.Screen name="unit-toggle" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
-      </ThemeProvider>
+      </GestureHandlerRootView>
     </TinyBaseProvider>
   );
 }

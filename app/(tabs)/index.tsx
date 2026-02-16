@@ -1,16 +1,12 @@
 import store from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as SQLite from 'expo-sqlite';
 import { ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
-import { useCreatePersister, useRow, useRowIds } from 'tinybase/ui-react';
+import { useRow, useRowIds } from 'tinybase/ui-react';
 
 console.log('store', store.getTables(), '-------');
 
 function DrinkItem({ id }: { id: string }) {
   const drink = useRow('drinks', id);
-
-  console.log(id, '-------');
 
   return (
     <Pressable onPress={() => store.delRow('drinks', id)}>
@@ -23,14 +19,6 @@ function DrinkItem({ id }: { id: string }) {
 export default function HomeScreen() {
   const drinksIds = useRowIds('drinks');
 
-  useCreatePersister(store, (store) =>
-    createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
-    [],
-    async (persister) => {
-      await persister.load();
-      await persister.startAutoSave();
-    }
-  );
 
   return (
     <View style={styles.container}>
