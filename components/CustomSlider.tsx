@@ -1,25 +1,59 @@
+import { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { clamp, runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 const TRACK_HEIGHT = 300;
 const THUMB_SIZE = 40;
+const TRAVEL_DIST = TRACK_HEIGHT - THUMB_SIZE;
 
-export default function CustomSlider({ min = 0, max = 2000, onValueChange }) {
+interface CustomSliderProps {
+  value: number;
+  min?: number;
+  max?: number;
+  onValueChange: (value: number) => void;
+}
+
+export default function CustomSlider({
+  value,
+  min = 0,
+  max = 2000,
+  onValueChange
+}: CustomSliderProps) {
+
   const translateY = useSharedValue(0);
-  const offset = useSharedValue(0);
+  const context = useSharedValue(0);
+  const isDragging = useSharedValue(false);
+
+  useEffect(() => {
+    if (isDragging.value) return;
+
+    const safeValue = isNaN(value) ? 500 : value;
+    const range = max - min;
+    const ratio = (max - safeValue) / range;
+    const newPosition = clamp(ratio * TRAVEL_DIST, 0, TRAVEL_DIST);
+
+    translateY.value = newPosition;
+  }, [value, max, min]);
 
   const gesture = Gesture.Pan()
-    .onStart(() => {
-      offset.value = translateY.value;
+    .onBegin(() => {
+      isDragging.value = true;
+      context.value = translateY.value;
     })
     .onUpdate((e) => {
-      translateY.value = clamp(offset.value + e.translationY, 0, TRACK_HEIGHT - THUMB_SIZE);
-      const ratio = translateY.value / (TRACK_HEIGHT - THUMB_SIZE);
-      const value = max - ratio * (max - min);
+      const newPos = clamp(context.value + e.translationY, 0, TRAVEL_DIST);
+      translateY.value = newPos;
+
+      const ratio = newPos / TRAVEL_DIST;
+      const calculatedValue = max - ratio * (max - min);
+
       if (onValueChange) {
-        runOnJS(onValueChange)(Math.round(value));
+        runOnJS(onValueChange)(Math.round(calculatedValue));
       }
+    })
+    .onFinalize(() => {
+      isDragging.value = false;
     });
 
   const thumbStyle = useAnimatedStyle(() => ({
@@ -27,16 +61,18 @@ export default function CustomSlider({ min = 0, max = 2000, onValueChange }) {
   }));
 
   return (
-    <View style={styles.track}>
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.thumb, thumbStyle, { width: THUMB_SIZE, height: THUMB_SIZE }]}>
-          <Image
-            source={require('@/assets/images/duck.png')}
-            style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
-          />
-        </Animated.View>
-      </GestureDetector>
-    </View>
+    <GestureHandlerRootView>
+      <View style={styles.track}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[styles.thumb, thumbStyle]}>
+            <Image
+              source={require('@/assets/images/duck.png')}
+              style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
+            />
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -45,11 +81,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: TRACK_HEIGHT,
     backgroundColor: '#1A1A1A',
-    borderRadius: 3,
-    justifyContent: 'flex-start',
+    borderRadius: 2,
   },
   thumb: {
     position: 'absolute',
     left: -THUMB_SIZE / 2 + 3,
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
   },
 });

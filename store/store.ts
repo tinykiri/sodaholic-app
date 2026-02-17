@@ -1,12 +1,12 @@
 import { createStore } from 'tinybase';
 
-const TYPE_OF_DRINKS = [
-  'Classic Soda',
-  'Zero/Diet',
-  'Energy',
-  'Sparkling Water',
-  'Coffee/Tea',
-  'Other'
+export const TYPE_OF_DRINKS = [
+  { label: 'Classic Soda', value: 'Classic Soda' },
+  { label: 'Zero/Diet', value: 'Zero/Diet' },
+  { label: 'Energy', value: 'Energy' },
+  { label: 'Sparkling Water', value: 'Sparkling Water' },
+  { label: 'Coffee/Tea', value: 'Coffee/Tea' },
+  { label: 'Other', value: 'Other' },
 ];
 
 export const UNITS = {
@@ -18,10 +18,10 @@ const store = createStore();
 
 store.setTablesSchema({
   drinks: {
-    date_of_creation: { type: 'string' },
+    date_of_creation: { type: 'string', default: new Date().toISOString() },
     name: { type: 'string' },
-    category_of_drink: { type: 'string' },
-    volume_ml: { type: 'number' },
+    category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
+    volume_ml: { type: 'number', default: 500 },
   },
   wraps: {
     period_id: { type: 'string' },
@@ -33,7 +33,12 @@ store.setTablesSchema({
 
 store.setValuesSchema({
   unit_preferences: { type: 'string', default: 'ml' },
+  name: { type: 'string' },
+  volume_ml: { type: 'number', default: 500 },
+  category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
 });
+
+store.setValue('volume_ml', 500);
 
 
 
