@@ -7,6 +7,7 @@ import { Provider as TinyBaseProvider, useCreatePersister } from 'tinybase/ui-re
 
 import UnitToggle from '@/components/unit-toggle';
 import * as SQLite from 'expo-sqlite';
+import { useState } from 'react';
 import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
 
 export const unstable_settings = {
@@ -14,13 +15,17 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  const [ready, setReady] = useState(false);
 
-  useCreatePersister(store, (store) =>
-    createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
+  useCreatePersister(
+    store,
+    (store) =>
+      createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
     [],
     async (persister) => {
       await persister.load();
       await persister.startAutoSave();
+      setReady(true);
     }
   );
 

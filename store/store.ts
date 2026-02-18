@@ -38,7 +38,6 @@ store.setValuesSchema({
   category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
 });
 
-store.setValue('volume_ml', 500);
 
 
 

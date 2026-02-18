@@ -1,6 +1,8 @@
+import CalendarHeatmap from '@/components/CalendarHeatmap';
+import Wrap from '@/components/Wrap';
 import store from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRow, useRowIds, useValue } from 'tinybase/ui-react';
 
 function DrinkItem({ id }: { id: string }) {
@@ -17,7 +19,8 @@ function DrinkItem({ id }: { id: string }) {
     : volume;
 
   return (
-    <Pressable onPress={() => store.delRow('drinks', id)}>
+    <View>
+      {/* <Pressable onPress={() => store.delRow('drinks', id)}> */}
       <Text style={{ color: 'red', fontSize: 20 }}>
         {drink.name}
       </Text>
@@ -27,7 +30,8 @@ function DrinkItem({ id }: { id: string }) {
       <Text style={{ color: 'red', fontSize: 20 }}>
         {drink.category_of_drink}
       </Text>
-    </Pressable>
+      {/* </Pressable> */}
+    </View>
   )
 }
 
@@ -48,17 +52,36 @@ export default function HomeScreen() {
         resizeMode='cover'
         style={{ flex: 1 }}
       >
-        <SafeAreaView style={{ flex: 1, paddingHorizontal: 16 }}>
-          <View style={styles.content}>
-            <Text style={styles.title}>Sodaholic</Text>
-            {drinksIds.map(id =>
-              <DrinkItem
-                key={id}
-                id={id}
-              />
-            )}
-          </View>
-        </SafeAreaView>
+        <ScrollView>
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.content}>
+              {/* heatmap content */}
+              <View>
+                <Text style={styles.title}>Calendar Heatmap</Text>
+                <CalendarHeatmap />
+              </View>
+
+              {/* recent drinks */}
+              <View>
+                <Text style={styles.title}>Recent Drinks (you can press to delete)</Text>
+                <View style={styles.recentDrinks}>
+                  {drinksIds.map(id =>
+                    <DrinkItem
+                      key={id}
+                      id={id}
+                    />
+                  )}
+                </View>
+              </View>
+              {/* wraps */}
+              <View>
+                <Text style={styles.title}>Wraps</Text>
+                <Wrap />
+              </View>
+            </View>
+          </SafeAreaView>
+        </ScrollView>
+
       </ImageBackground>
     </View>
   );
@@ -70,14 +93,20 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    gap: 24,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
     marginBottom: 20,
+  },
+  recentDrinks: {
+    gap: 12
   }
 });
