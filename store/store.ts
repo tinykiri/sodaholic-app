@@ -1,4 +1,5 @@
-import { createStore } from 'tinybase';
+import { createMergeableStore } from 'tinybase';
+import { createWsSynchronizer } from 'tinybase/synchronizers/synchronizer-ws-client';
 
 export const TYPE_OF_DRINKS = [
   { label: 'Classic Soda', value: 'Classic Soda' },
@@ -14,7 +15,9 @@ export const UNITS = {
   OZ: 'oz',
 };
 
-const store = createStore();
+const store = createMergeableStore();
+
+const WS_URL = process.env.EXPO_PUBLIC_WS_URL as string;
 
 store.setTablesSchema({
   drinks: {
@@ -38,7 +41,19 @@ store.setValuesSchema({
   category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
 });
 
+async function startSyncing() {
+  try {
+    const ws = new WebSocket(WS_URL);
+    const synchronizer = await createWsSynchronizer(store, ws);
 
+    await synchronizer.startSync();
+    console.log('Syncing started successfully');
+  } catch (error) {
+    console.error('Failed to start syncing:', error);
+  }
+}
+
+startSyncing();
 
 
 export default store;

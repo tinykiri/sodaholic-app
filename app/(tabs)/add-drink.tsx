@@ -1,7 +1,7 @@
 import CustomSlider from '@/components/CustomSlider';
 import store, { TYPE_OF_DRINKS } from '@/store/store';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Button, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useValue } from 'tinybase/ui-react';
@@ -45,82 +45,86 @@ export default function AddNewDrink() {
 
   return (
     <SafeAreaView style={{ flex: 1, paddingHorizontal: 16 }}>
-      <View style={{ flex: 1, gap: 20 }}>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <View style={{ flex: 1, gap: 20 }}>
 
-        {/* bottle area */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '55%' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 36 }}>
-            <Text>*bottle area  with svg*</Text>
-            <CustomSlider
-              value={currentVolume}
-              onValueChange={setVolume}
-            />
-          </View>
-          <View>
-
-            {/* info area */}
-            <View style={{ alignItems: 'center', gap: 10 }}>
-              <View style={{ borderWidth: 3, borderColor: 'black', width: 100, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}>
-                <Text>{displayValue} {unit === 'oz' ? 'oz' : 'ml'}</Text>
+            {/* bottle area */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '55%' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 36 }}>
+                <Text>*bottle area  with svg*</Text>
+                <CustomSlider
+                  value={currentVolume}
+                  onValueChange={setVolume}
+                />
               </View>
-              <Text style={error ? { color: 'red' } : {}}>
-                {error && <Text style={{ color: 'red' }}>*</Text>}
-                Drink Name
-              </Text>
-              <TextInput
-                style={[styles.input, { borderColor: error ? 'red' : 'black' }]}
-                placeholder='e.g. Tea'
-                value={inputValue}
-                onChangeText={(text) => {
-                  setInputValue(text);
-                  if (error) setError(false);
-                }}
-              />
-              <Text>Category</Text>
-              <Dropdown
-                style={styles.input}
-                data={TYPE_OF_DRINKS}
-                onChange={(value) => store.setValue('category_of_drink', value.value)}
-                placeholder={TYPE_OF_DRINKS[0].label}
-                value={drinkCategory}
-                labelField="label"
-                valueField="value"
-              />
+              <View>
+
+                {/* info area */}
+                <View style={{ alignItems: 'center', gap: 10 }}>
+                  <View style={{ borderWidth: 3, borderColor: 'black', width: 100, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}>
+                    <Text>{displayValue} {unit === 'oz' ? 'oz' : 'ml'}</Text>
+                  </View>
+                  <Text style={error ? { color: 'red' } : {}}>
+                    {error && <Text style={{ color: 'red' }}>*</Text>}
+                    Drink Name
+                  </Text>
+                  <TextInput
+                    style={[styles.input, { borderColor: error ? 'red' : 'black' }]}
+                    placeholder='e.g. Tea'
+                    value={inputValue}
+                    onChangeText={(text) => {
+                      setInputValue(text);
+                      if (error) setError(false);
+                    }}
+                  />
+                  <Text>Category</Text>
+                  <Dropdown
+                    style={styles.input}
+                    data={TYPE_OF_DRINKS}
+                    onChange={(value) => store.setValue('category_of_drink', value.value)}
+                    placeholder={TYPE_OF_DRINKS[0].label}
+                    value={drinkCategory}
+                    labelField="label"
+                    valueField="value"
+                  />
+                </View>
+
+              </View>
             </View>
 
+            {/* quick add */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <TouchableOpacity
+                onPress={() => handleQuickAdd(355)}
+                style={styles.quickAdd}
+              >
+                <Text style={styles.quickAddText}>
+                  12oz/355ml
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleQuickAdd(500)}
+                style={styles.quickAdd}
+              >
+                <Text style={styles.quickAddText}>
+                  16.9oz/500ml
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleQuickAdd(2000)}
+                style={styles.quickAdd}
+              >
+                <Text style={styles.quickAddText}>
+                  2L
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <Button title="Save Drink" onPress={handleAddNewDrink} />
           </View>
-        </View>
-
-        {/* quick add */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <TouchableOpacity
-            onPress={() => handleQuickAdd(355)}
-            style={styles.quickAdd}
-          >
-            <Text style={styles.quickAddText}>
-              12oz/355ml
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleQuickAdd(500)}
-            style={styles.quickAdd}
-          >
-            <Text style={styles.quickAddText}>
-              16.9oz/500ml
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleQuickAdd(2000)}
-            style={styles.quickAdd}
-          >
-            <Text style={styles.quickAddText}>
-              2L
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <Button title="Save Drink" onPress={handleAddNewDrink} />
-      </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
