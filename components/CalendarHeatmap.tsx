@@ -205,17 +205,20 @@ const styles = StyleSheet.create({
   arrowText: {
     color: '#000000',
     fontSize: 28,
-    fontWeight: '600'
+    fontWeight: '600',
+    fontFamily: 'Silkscreen',
   },
   monthLabel: {
     color: '#000000',
     fontSize: 18,
-    fontWeight: '700'
+    fontWeight: '700',
+    fontFamily: 'Silkscreen-Bold',
   },
   subtitle: {
     color: '#000000',
     fontSize: 12,
-    marginTop: 2
+    marginTop: 2,
+    fontFamily: 'Silkscreen',
   },
   gridOuter: {
     flexDirection: 'row',
@@ -228,6 +231,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 10,
     fontWeight: '500',
+    fontFamily: 'Silkscreen',
   },
   gridContent: {
     flex: 1,
@@ -248,6 +252,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 10,
     marginHorizontal: 4,
+    fontFamily: 'Silkscreen',
   },
   legendBox: { width: 12, height: 12, borderRadius: 3 },
 });

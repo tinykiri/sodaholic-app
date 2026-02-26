@@ -17,10 +17,10 @@ export default function UnitToggle() {
   return (
     <Pressable style={styles.container} onPress={toggleUnit}>
       <View style={[styles.unitValueContainer, unit === 'ml' && styles.active]}>
-        <Text style={unit === 'ml' ? { color: 'white' } : { color: 'grey' }}>ML</Text>
+        <Text style={unit === 'ml' ? { color: 'white', fontFamily: 'Silkscreen' } : { color: 'grey', fontFamily: 'Silkscreen' }}>ML</Text>
       </View>
       <View style={[styles.unitValueContainer, unit === 'oz' && styles.active]}>
-        <Text style={unit === 'oz' ? { color: 'white' } : { color: 'grey' }}>OZ</Text>
+        <Text style={unit === 'oz' ? { color: 'white', fontFamily: 'Silkscreen' } : { color: 'grey', fontFamily: 'Silkscreen' }}>OZ</Text>
       </View>
     </Pressable>
   )

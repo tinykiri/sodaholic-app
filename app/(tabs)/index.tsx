@@ -2,7 +2,8 @@ import CalendarHeatmap from '@/components/CalendarHeatmap';
 import DrinkItem from '@/components/DrinkItem';
 import Wrap from '@/components/Wrap';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRowIds } from 'tinybase/ui-react';
 
 
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: 'Silkscreen-Bold',
     color: 'white',
     shadowColor: 'black',
     shadowOffset: { width: 0, height: 2 },

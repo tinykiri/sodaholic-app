@@ -16,13 +16,13 @@ export default function DrinkItem({ id }: { id: string }) {
     <View style={{ backgroundColor: 'blue', flexDirection: 'row', gap: 12 }}>
       {/* <Pressable onPress={() => store.delRow('drinks', id)} style={{ width: 100, height: 100 }}> */}
       <View style={{ width: 100, height: 100 }}>
-        <Text style={{ color: 'red', fontSize: 20 }}>
+        <Text style={{ color: 'red', fontSize: 20, fontFamily: 'Silkscreen' }}>
           {drink.name}
         </Text>
-        <Text style={{ color: 'red', fontSize: 20 }}>
+        <Text style={{ color: 'red', fontSize: 20, fontFamily: 'Silkscreen' }}>
           {displayValue} {unit === 'oz' ? 'oz' : 'ml'}
         </Text>
-        <Text style={{ color: 'red', fontSize: 20 }}>
+        <Text style={{ color: 'red', fontSize: 20, fontFamily: 'Silkscreen' }}>
           {drink.category_of_drink}
         </Text>
       </View>
