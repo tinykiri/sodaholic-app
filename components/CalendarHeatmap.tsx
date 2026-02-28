@@ -1,16 +1,15 @@
 import store from '@/store/store';
+import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useMemo, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRowIds } from 'tinybase/ui-react';
 
-const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
-const GRID_HEIGHT = 140;
-const GAP = 4;
-const DAY_LABEL_WIDTH = 30;
-const NUM_ROWS = 7;
+const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+const GAP = 1;
+const CAN_ASPECT_RATIO = 1;
 
 const getColor = (count: number): string => {
-  if (count === 0) return 'rgba(255, 255, 255, 0.68)';
+  if (count === 0) return '#161b22';
   if (count === 1) return '#0e4429';
   if (count === 2) return '#006d32';
   if (count === 3) return '#26a641';
@@ -63,13 +62,15 @@ const CalendarHeatmap = () => {
   const totalSlots = firstDayOfWeek + daysInMonth;
   const numWeeks = Math.ceil(totalSlots / 7);
 
-  const grid: (number | null)[][] = Array.from({ length: 7 }, () =>
-    Array(numWeeks).fill(null)
+  const grid: (number | null)[][] = Array.from({ length: numWeeks }, () =>
+    Array(7).fill(null)
   );
 
   for (let day = 1; day <= daysInMonth; day++) {
     const slotIndex = firstDayOfWeek + (day - 1);
-    grid[slotIndex % 7][Math.floor(slotIndex / 7)] = day;
+    const weekIndex = Math.floor(slotIndex / 7);
+    const dayIndex = slotIndex % 7;
+    grid[weekIndex][dayIndex] = day;
   }
 
   const streak = useMemo(() => {
@@ -109,14 +110,12 @@ const CalendarHeatmap = () => {
     return count;
   }, [rowIds]);
 
-  const cellHeight = (GRID_HEIGHT - GAP * (NUM_ROWS - 1)) / NUM_ROWS;
-  const cellWidth = gridWidth > 0
-    ? (gridWidth - GAP * (numWeeks - 1)) / numWeeks
-    : 0;
-
   const onGridLayout = (e: LayoutChangeEvent) => {
     setGridWidth(e.nativeEvent.layout.width);
   };
+
+  const cellWidth = gridWidth > 0 ? (gridWidth - (6 * GAP)) / 7 : 0;
+  const cellHeight = cellWidth > 0 ? cellWidth / CAN_ASPECT_RATIO : 0;
 
   return (
     <View style={styles.container}>
@@ -126,55 +125,81 @@ const CalendarHeatmap = () => {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.monthLabel}>{monthLabel}</Text>
-          <Text style={styles.subtitle}>Streak: {streak} {streak === 1 ? 'day' : 'days'}</Text>
         </View>
         <TouchableOpacity onPress={goForward} style={styles.arrow}>
           <Text style={styles.arrowText}>›</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.gridOuter, { height: GRID_HEIGHT }]}>
-        <View style={[styles.dayLabelsCol, { width: DAY_LABEL_WIDTH }]}>
-          {DAY_LABELS.map((label, i) => (
-            <View key={i} style={{ height: cellHeight, justifyContent: 'center' }}>
-              <Text style={styles.dayLabelText}>{label}</Text>
+      <View style={styles.gridOuter} onLayout={onGridLayout}>
+        {gridWidth > 0 && (
+          <>
+            <View style={styles.dayLabelsRow}>
+              {DAY_LABELS.map((label, i) => (
+                <View key={i} style={{ width: cellWidth, alignItems: 'center' }}>
+                  <Text style={styles.dayLabelText}>{label}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
 
-        <View style={styles.gridContent} onLayout={onGridLayout}>
-          {gridWidth > 0 &&
-            grid.map((row, dayIndex) => (
-              <View key={dayIndex} style={styles.gridRow}>
-                {row.map((day, weekIndex) => {
-                  const count = day ? drinksByDay[day] || 0 : 0;
-                  return (
-                    <View
-                      key={weekIndex}
-                      style={{
-                        width: cellWidth,
-                        height: cellHeight,
-                        borderRadius: Math.min(cellWidth, cellHeight) * 0.2,
-                        backgroundColor:
-                          day !== null ? getColor(count) : 'transparent',
-                      }}
-                    />
-                  );
-                })}
-              </View>
-            ))}
-        </View>
+            <View style={styles.gridContent}>
+              {grid.map((week, weekIndex) => (
+                <View key={weekIndex} style={styles.gridRow}>
+                  {week.map((day, dayIndex) => {
+                    const count = day ? drinksByDay[day] || 0 : 0;
+                    return (
+                      <View key={dayIndex} style={{ width: cellWidth, height: cellHeight }}>
+                        {day ? (
+                          <>
+                            <MaskedView
+                              style={{ flex: 1 }}
+                              maskElement={
+                                <View style={{ backgroundColor: 'transparent', flex: 1 }}>
+                                  <Image
+                                    source={require('@/assets/images/can-heatmap-mask.png')}
+                                    resizeMode="contain"
+                                    style={{ width: '100%', height: '100%' }}
+                                  />
+                                </View>
+                              }>
+                              <View style={{ flex: 1, backgroundColor: getColor(count) }} />
+                            </MaskedView>
+                            <Image
+                              source={require('@/assets/images/can-heatmap.png')}
+                              resizeMode="contain"
+                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                            />
+                          </>
+                        ) : (
+                          <View style={{ flex: 1 }} />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          </>
+        )}
       </View>
 
       <View style={styles.legend}>
-        <Text style={styles.legendLabel}>Less</Text>
-        {[0, 1, 2, 3, 4].map(i => (
-          <View
-            key={i}
-            style={[styles.legendBox, { backgroundColor: getColor(i) }]}
-          />
-        ))}
-        <Text style={styles.legendLabel}>More</Text>
+        <View style={{ flexDirection: 'row', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={[styles.streak, { color: '#000000' }]}>Streak:</Text>
+          <View style={styles.streakNumberContainer}>
+            <Text style={[styles.streak, { color: '#ffffff' }]}>{streak} {streak === 1 ? 'day' : 'days'}</Text>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 4 }}>
+          <Text style={styles.legendLabel}>Less</Text>
+          {[0, 1, 2, 3, 4].map(i => (
+            <View
+              key={i}
+              style={[styles.legendBox, { backgroundColor: getColor(i) }]}
+            />
+          ))}
+          <Text style={styles.legendLabel}>More</Text>
+        </View>
       </View>
     </View>
   );
@@ -182,18 +207,22 @@ const CalendarHeatmap = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgb(189, 189, 189)',
-    borderWidth: 3,
-    borderColor: '#000000',
     borderRadius: 6,
-    padding: 16,
+    borderWidth: 3,
+    borderColor: '#010101',
+    borderLeftWidth: 3,
+    borderLeftColor: '#79acdc',
+    borderTopWidth: 3,
+    borderTopColor: '#79acdc',
+    backgroundColor: '#3465a7',
+    padding: 12,
     overflow: 'hidden',
+    height: 390,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
   headerCenter: {
     alignItems: 'center'
@@ -213,29 +242,39 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Silkscreen-Bold',
+
   },
-  subtitle: {
-    color: '#000000',
-    fontSize: 12,
-    marginTop: 2,
+  streak: {
+    fontSize: 14,
     fontFamily: 'Silkscreen',
+    textAlign: 'center',
+  },
+  streakNumberContainer: {
+    backgroundColor: '#cfeaf5',
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 3,
+    textAlign: 'center',
+    padding: 2,
   },
   gridOuter: {
+    width: '100%',
+  },
+  dayLabelsRow: {
     flexDirection: 'row',
     gap: GAP,
-  },
-  dayLabelsCol: {
-    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   dayLabelText: {
     color: '#000000',
     fontSize: 10,
     fontWeight: '500',
     fontFamily: 'Silkscreen',
+    textAlign: 'center',
   },
   gridContent: {
-    flex: 1,
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    gap: GAP,
   },
   gridRow: {
     flexDirection: 'row',
@@ -244,17 +283,22 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginTop: 14,
     gap: 4,
   },
   legendLabel: {
     color: '#000000',
-    fontSize: 10,
+    fontSize: 14,
     marginHorizontal: 4,
     fontFamily: 'Silkscreen',
   },
-  legendBox: { width: 12, height: 12, borderRadius: 3 },
+  legendBox: {
+    marginTop: 3,
+    width: 12,
+    height: 12,
+    borderRadius: 3
+  },
 });
 
 export default CalendarHeatmap;
