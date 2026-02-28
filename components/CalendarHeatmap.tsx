@@ -9,11 +9,11 @@ const GAP = 1;
 const CAN_ASPECT_RATIO = 1;
 
 const getColor = (count: number): string => {
-  if (count === 0) return '#161b22';
-  if (count === 1) return '#0e4429';
-  if (count === 2) return '#006d32';
-  if (count === 3) return '#26a641';
-  return '#39d353';
+  if (count === 0) return '#3A2A1A';
+  if (count === 1) return '#CC5200';
+  if (count === 2) return '#FF6600';
+  if (count === 3) return '#FF9248';
+  return '#FFD60A';
 };
 
 const CalendarHeatmap = () => {
@@ -185,9 +185,9 @@ const CalendarHeatmap = () => {
 
       <View style={styles.legend}>
         <View style={{ flexDirection: 'row', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={[styles.streak, { color: '#000000' }]}>Streak:</Text>
+          <Text style={[styles.streak, { color: '#E5E5E7' }]}>Streak:</Text>
           <View style={styles.streakNumberContainer}>
-            <Text style={[styles.streak, { color: '#ffffff' }]}>{streak} {streak === 1 ? 'day' : 'days'}</Text>
+            <Text style={[styles.streak, { color: '#0A0A0A' }]}>{streak} {streak === 1 ? 'day' : 'days'}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -209,12 +209,12 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 6,
     borderWidth: 3,
-    borderColor: '#010101',
+    borderColor: '#993D00',
     borderLeftWidth: 3,
-    borderLeftColor: '#79acdc',
+    borderLeftColor: '#FF9248',
     borderTopWidth: 3,
-    borderTopColor: '#79acdc',
-    backgroundColor: '#3465a7',
+    borderTopColor: '#FF9248',
+    backgroundColor: '#1C1C1E',
     padding: 12,
     overflow: 'hidden',
     height: 390,
@@ -225,24 +225,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerCenter: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   arrow: {
     paddingHorizontal: 12,
-    paddingVertical: 4
+    paddingVertical: 4,
   },
   arrowText: {
-    color: '#000000',
+    color: '#FF6600',
     fontSize: 28,
     fontWeight: '600',
     fontFamily: 'Silkscreen',
   },
   monthLabel: {
-    color: '#000000',
+    color: '#F5F5F7',
     fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Silkscreen-Bold',
-
   },
   streak: {
     fontSize: 14,
@@ -250,12 +249,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   streakNumberContainer: {
-    backgroundColor: '#cfeaf5',
-    borderWidth: 2,
-    borderColor: '#000000',
-    borderRadius: 3,
+    backgroundColor: '#FFD60A',
+    borderWidth: 3,
+    borderColor: '#993D00',
+    borderRadius: 6,
     textAlign: 'center',
-    padding: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   gridOuter: {
     width: '100%',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dayLabelText: {
-    color: '#000000',
+    color: '#8E8E93',
     fontSize: 10,
     fontWeight: '500',
     fontFamily: 'Silkscreen',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   legendLabel: {
-    color: '#000000',
+    color: '#8E8E93',
     fontSize: 14,
     marginHorizontal: 4,
     fontFamily: 'Silkscreen',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     width: 12,
     height: 12,
-    borderRadius: 3
+    borderRadius: 6,
   },
 });
 

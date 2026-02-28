@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
   track: {
     width: 6,
     height: TRACK_HEIGHT,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 2,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 6,
   },
   thumb: {
     position: 'absolute',

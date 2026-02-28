@@ -56,12 +56,12 @@ export default function RootLayout() {
               headerShown: true,
               headerTitleAlign: 'center',
               headerTitle: 'Sodaholic',
-              headerTitleStyle: { fontFamily: 'Silkscreen-Bold', color: '#ffffff' },
+              headerTitleStyle: { fontFamily: 'Silkscreen-Bold', color: '#FF6600' },
               headerRight: () => {
                 return <UnitToggle />;
               },
               headerStyle: {
-                backgroundColor: '#325ca7',
+                backgroundColor: '#1C1C1E',
               },
             }}
           />

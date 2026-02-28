@@ -1,7 +1,8 @@
+import BubblesBackground from '@/components/BubblesBackground';
 import CalendarHeatmap from '@/components/CalendarHeatmap';
 import DrinkItem from '@/components/DrinkItem';
 import Wrap from '@/components/Wrap';
-import { ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRowIds } from 'tinybase/ui-react';
 
 
@@ -10,44 +11,38 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require('@/assets/images/bg.png')}
-        resizeMode='cover'
-        style={{ flex: 1 }}
-        imageStyle={{ opacity: 0.6 }}
-      >
-        <ScrollView style={{ flex: 1 }}>
-          <View style={styles.content}>
-            {/* heatmap content */}
-            <View>
-              <Text style={styles.title}>Calendar Heatmap</Text>
-              <CalendarHeatmap />
-            </View>
-
-            {/* recent drinks */}
-            <View>
-              <Text style={styles.title}>Recent Drinks (you can press to delete)</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.recentDrinks}
-              >
-                {drinksIds.map(id =>
-                  <DrinkItem
-                    key={id}
-                    id={id}
-                  />
-                )}
-              </ScrollView>
-            </View>
-            {/* wraps */}
-            <View>
-              <Text style={styles.title}>Wraps</Text>
-              <Wrap />
-            </View>
+      <BubblesBackground />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.content}>
+          {/* heatmap content */}
+          <View>
+            <Text style={styles.title}>Calendar Heatmap</Text>
+            <CalendarHeatmap />
           </View>
-        </ScrollView>
-      </ImageBackground>
+
+          {/* recent drinks */}
+          <View>
+            <Text style={styles.title}>Recent Drinks (you can press to delete)</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.recentDrinks}
+            >
+              {drinksIds.map(id =>
+                <DrinkItem
+                  key={id}
+                  id={id}
+                />
+              )}
+            </ScrollView>
+          </View>
+          {/* wraps */}
+          <View>
+            <Text style={styles.title}>Wraps</Text>
+            <Wrap />
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -55,7 +50,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3987cc',
+    backgroundColor: '#0A0A0A',
   },
   content: {
     flex: 1,
@@ -66,7 +61,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: 'Silkscreen-Bold',
-    color: '#000000',
+    color: '#F5F5F7',
     marginBottom: 20,
   },
   recentDrinks: {
