@@ -1,5 +1,7 @@
 import { createMergeableStore } from 'tinybase';
+import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
 import { createWsSynchronizer } from 'tinybase/synchronizers/synchronizer-ws-client';
+import * as SQLite from 'expo-sqlite';
 
 export const TYPE_OF_DRINKS = [
   { label: 'Classic Soda', value: 'Classic Soda' },
@@ -41,11 +43,20 @@ store.setValuesSchema({
   category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
 });
 
-async function startSyncing() {
+async function init() {
+  try {
+    const db = await SQLite.openDatabaseAsync('sodaholic.db');
+    const persister = createExpoSqlitePersister(store, db);
+    await persister.load();
+    await persister.startAutoSave();
+    console.log('Local persistence started');
+  } catch (error) {
+    console.error('Failed to start persister:', error);
+  }
+
   try {
     const ws = new WebSocket(WS_URL);
     const synchronizer = await createWsSynchronizer(store, ws);
-
     await synchronizer.startSync();
     console.log('Syncing started successfully');
   } catch (error) {
@@ -53,7 +64,7 @@ async function startSyncing() {
   }
 }
 
-startSyncing();
+init();
 
 
 export default store;
