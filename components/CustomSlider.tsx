@@ -4,7 +4,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import Animated, { clamp, runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 const TRACK_HEIGHT = 300;
-const THUMB_SIZE = 40;
+const THUMB_SIZE = 30;
 const TRAVEL_DIST = TRACK_HEIGHT - THUMB_SIZE;
 
 interface CustomSliderProps {
@@ -66,7 +66,7 @@ export default function CustomSlider({
         <GestureDetector gesture={gesture}>
           <Animated.View style={[styles.thumb, thumbStyle]}>
             <Image
-              source={require('@/assets/images/duck.png')}
+              source={require('@/assets/images/slider-thumb.png')}
               style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
             />
           </Animated.View>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: TRACK_HEIGHT,
     backgroundColor: '#3A3A3C',
-    borderRadius: 6,
+    borderRadius: 2,
   },
   thumb: {
     position: 'absolute',

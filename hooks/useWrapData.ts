@@ -51,7 +51,7 @@ function getYearRange(date: Date): WrapRange {
   return { start, end, label: `${date.getFullYear()}` };
 }
 
-function getRangeForPeriod(period: Period, date: Date): WrapRange {
+export function getRangeForPeriod(period: Period, date: Date): WrapRange {
   if (period === 'weekly') return getWeekRange(date);
   if (period === 'monthly') return getMonthRange(date);
   return getYearRange(date);

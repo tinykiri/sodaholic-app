@@ -2,21 +2,36 @@ import BubblesBackground from '@/components/BubblesBackground';
 import CalendarHeatmap from '@/components/CalendarHeatmap';
 import CategoryBreakdown from '@/components/CategoryBreakdown';
 import DrinkItem from '@/components/DrinkItem';
+import RecapBanner from '@/components/RecapBanner';
 import Wrap from '@/components/Wrap';
-import { useWrapData } from '@/hooks/useWrapData';
+import { getRangeForPeriod, useWrapData } from '@/hooks/useWrapData';
+import store from '@/store/store';
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRowIds } from 'tinybase/ui-react';
+import { useRowIds, useValue } from 'tinybase/ui-react';
 
 
 export default function HomeScreen() {
   const drinksIds = useRowIds('drinks');
   const wrap = useWrapData();
+  const seenWeekly = useValue('wrap_seen_weekly', store) as string;
+
+  useEffect(() => {
+    if (seenWeekly === '') {
+      const now = new Date();
+      store.setValue('wrap_seen_weekly', getRangeForPeriod('weekly', now).start.toISOString());
+      store.setValue('wrap_seen_monthly', getRangeForPeriod('monthly', now).start.toISOString());
+      store.setValue('wrap_seen_yearly', getRangeForPeriod('yearly', now).start.toISOString());
+    }
+  }, [seenWeekly]);
 
   return (
     <View style={styles.container}>
       <BubblesBackground />
       <ScrollView style={{ flex: 1 }}>
         <View style={styles.content}>
+          <RecapBanner />
+
           {/* heatmap content */}
           <View>
             <Text style={styles.title}>Calendar Heatmap</Text>
@@ -25,28 +40,31 @@ export default function HomeScreen() {
 
           {/* recent drinks */}
           <View>
-            <Text style={styles.title}>Recent Drinks (you can press to delete)</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.recentDrinks}
-            >
-              {drinksIds.map(id =>
-                <DrinkItem
-                  key={id}
-                  id={id}
-                />
-              )}
-            </ScrollView>
+            <Text style={styles.title}>Recent Drinks</Text>
+            {drinksIds.length === 0 ? (
+              <Text style={styles.emptyCaption}>
+                Your entered drinks will appear here
+              </Text>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.recentDrinks}
+              >
+                {drinksIds.map(id =>
+                  <DrinkItem
+                    key={id}
+                    id={id}
+                  />
+                )}
+              </ScrollView>
+            )}
           </View>
 
           {/* wraps */}
           <View>
             <Text style={styles.title}>Wraps</Text>
-            <Wrap
-              previews={wrap.previews}
-              formatVolume={wrap.formatVolume}
-            />
+            <Wrap />
           </View>
 
           {/* category breakdown */}
@@ -74,11 +92,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 20,
     paddingBottom: 40,
-    gap: 24,
+    gap: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     fontFamily: 'Silkscreen-Bold',
     color: '#F5F5F7',
@@ -86,5 +105,12 @@ const styles = StyleSheet.create({
   },
   recentDrinks: {
     gap: 12,
-  }
+  },
+  emptyCaption: {
+    color: '#636366',
+    fontSize: 12,
+    fontFamily: 'Silkscreen',
+    textAlign: 'center',
+    paddingVertical: 24,
+  },
 });

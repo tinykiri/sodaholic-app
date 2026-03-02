@@ -14,9 +14,10 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: '#1C1C1E',
           borderTopWidth: 3,
-          borderTopColor: '#FF9248',
+          borderTopColor: '#993D00',
+          height: 80,
         },
-        tabBarActiveTintColor: '#FF6600',
+        tabBarActiveTintColor: '#FFD60A',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarLabelStyle: {
           fontFamily: 'Silkscreen',
@@ -26,15 +27,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="square.grid.2x2.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="add-drink"
         options={{
           title: 'Add Drink',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.rectangle.fill" color={color} />,
         }}
       />
     </Tabs>

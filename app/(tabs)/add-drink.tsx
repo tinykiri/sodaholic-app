@@ -2,7 +2,8 @@ import BubblesBackground from '@/components/BubblesBackground';
 import CustomSlider from '@/components/CustomSlider';
 import store, { TYPE_OF_DRINKS } from '@/store/store';
 import MaskedView from '@react-native-masked-view/masked-view';
-import { useState } from 'react';
+import { Canvas, Group, Rect, Skia } from '@shopify/react-native-skia';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Keyboard,
@@ -15,10 +16,21 @@ import {
   View
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import {
+  Easing,
+  useDerivedValue,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useValue } from 'tinybase/ui-react';
 
 const MAX_VOLUME = 2000;
+const WAVE_HEIGHT = 3;
+const WAVE_COUNT = 2;
+const PIXEL_SIZE = 2;
+const BOTTLE_DIMS = { width: 120, height: 300 };
 
 export default function AddNewDrink() {
   const unit = useValue('unit_preferences', store);
@@ -31,6 +43,63 @@ export default function AddNewDrink() {
   let currentVolume = typeof drinkVolume === 'number' ? drinkVolume : 500;
 
   const fillPercentage = Math.min((currentVolume / MAX_VOLUME) * 100, 100);
+  const fillPercent = fillPercentage / 100;
+
+  const waveSvgPath = useMemo(() => {
+    const w = BOTTLE_DIMS.width;
+    const steps = Math.ceil(w / PIXEL_SIZE);
+    let path = '';
+
+    for (let i = 0; i <= steps; i++) {
+      const x = i * PIXEL_SIZE;
+      const t = x / w;
+      const rawY = Math.sin(t * WAVE_COUNT * 2 * Math.PI) * WAVE_HEIGHT;
+      const y = Math.round(rawY / PIXEL_SIZE) * PIXEL_SIZE;
+      if (i === 0) {
+        path += `M${x},${y}`;
+      } else {
+        const prevRawY = Math.sin(((i - 1) * PIXEL_SIZE / w) * WAVE_COUNT * 2 * Math.PI) * WAVE_HEIGHT;
+        const prevY = Math.round(prevRawY / PIXEL_SIZE) * PIXEL_SIZE;
+        path += `H${x}`;
+        if (y !== prevY) path += `V${y}`;
+      }
+    }
+
+    path += `V${BOTTLE_DIMS.height + WAVE_HEIGHT}`;
+    path += `H0`;
+    path += `Z`;
+
+    return path;
+  }, []);
+
+  const waveX = useSharedValue(0);
+  const fillSV = useSharedValue(fillPercent);
+
+  useEffect(() => {
+    waveX.value = withRepeat(
+      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+  }, []);
+
+  useEffect(() => {
+    fillSV.value = withTiming(fillPercent, { duration: 80 });
+  }, [fillPercent]);
+
+  const TILT = 0.06;
+
+  const wavePath = useDerivedValue(() => {
+    const p = Skia.Path.MakeFromSVGString(waveSvgPath);
+    if (!p) return Skia.Path.Make();
+    const tilt = (waveX.value * 2 - 1) * TILT;
+    const m = Skia.Matrix();
+    m.translate(BOTTLE_DIMS.width / 2, (1 - fillSV.value) * BOTTLE_DIMS.height - WAVE_HEIGHT);
+    m.skew(0, tilt);
+    m.translate(-BOTTLE_DIMS.width / 2, 0);
+    p.transform(m);
+    return p;
+  });
 
   const displayValue = unit === 'oz'
     ? (currentVolume / 29.57).toFixed(1)
@@ -59,7 +128,7 @@ export default function AddNewDrink() {
 
   const setVolume = (val: number) => store.setValue('volume_ml', val);
 
-  const bottleDims = { width: 120, height: 300 };
+  const bottleDims = BOTTLE_DIMS;
 
   return (
     <View style={styles.container}>
@@ -86,19 +155,17 @@ export default function AddNewDrink() {
                         </View>
                       }
                     >
-                      <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-
-                        <View
-                          style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            height: `${fillPercentage}%`,
-                            backgroundColor: '#FF6600',
-                          }}
-                        />
-                      </View>
+                      <Canvas style={{ width: bottleDims.width, height: bottleDims.height }}>
+                        <Group clip={wavePath}>
+                          <Rect
+                            x={0}
+                            y={0}
+                            width={bottleDims.width}
+                            height={bottleDims.height}
+                            color="#FF6600"
+                          />
+                        </Group>
+                      </Canvas>
                     </MaskedView>
 
                     <Image
@@ -126,7 +193,9 @@ export default function AddNewDrink() {
                     <TextInput
                       style={[styles.input, { borderColor: error ? '#FF6600' : '#3A3A3C', fontFamily: 'Silkscreen' }]}
                       placeholder='e.g. Tea'
+                      placeholderTextColor='#6f6f70'
                       value={inputValue}
+                      maxLength={20}
                       onChangeText={(text) => {
                         setInputValue(text);
                         if (error) setError(false);
@@ -135,6 +204,12 @@ export default function AddNewDrink() {
                     <Text style={{ fontFamily: 'Silkscreen', color: '#E5E5E7' }}>Category</Text>
                     <Dropdown
                       style={styles.input}
+                      placeholderStyle={{ fontFamily: 'Silkscreen' }}
+                      selectedTextStyle={{ fontFamily: 'Silkscreen', color: '#E5E5E7' }}
+                      containerStyle={{ backgroundColor: '#2C2C2E' }}
+                      itemTextStyle={{ fontFamily: 'Silkscreen', color: '#E5E5E7' }}
+                      itemContainerStyle={{ backgroundColor: '#2C2C2E' }}
+                      activeColor="#FF6600"
                       data={TYPE_OF_DRINKS}
                       onChange={(value) => store.setValue('category_of_drink', value.value)}
                       placeholder={TYPE_OF_DRINKS[0].label}
@@ -148,6 +223,7 @@ export default function AddNewDrink() {
               </View>
 
               {/* quick add */}
+              <Text style={styles.title}>Quick Add</Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                 <TouchableOpacity onPress={() => handleQuickAdd(355)} style={styles.quickAdd}>
                   <Image
@@ -191,6 +267,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0A0A0A',
   },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'Silkscreen-Bold',
+    color: '#F5F5F7',
+    textAlign: 'center',
+  },
   volumeDisplay: {
     borderWidth: 3,
     borderColor: '#3A3A3C',
@@ -215,7 +298,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#2C2C2E',
     padding: 8,
-    color: '#E5E5E7',
+    color: '#E5E5E7'
   },
   quickAdd: {
     gap: 4,

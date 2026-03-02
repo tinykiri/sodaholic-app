@@ -70,11 +70,11 @@ export default function RootLayout() {
     }
   );
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
 
   return (
     <TinyBaseProvider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
         <Stack>
           <UnitToggle />
           <Stack.Screen

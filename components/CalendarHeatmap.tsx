@@ -1,12 +1,11 @@
 import store from '@/store/store';
-import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useRowIds } from 'tinybase/ui-react';
 
-const COLS = 7;
-const GAP = 2;
+const COLS = 10;
+const GAP = 4;
 
 const getColor = (count: number): string => {
   if (count === 0) return '#3A2A1A';
@@ -114,7 +113,7 @@ const CalendarHeatmap = () => {
   };
 
   const cellWidth = gridWidth > 0 ? (gridWidth - (COLS - 1) * GAP) / COLS : 0;
-  const cellHeight = cellWidth * 0.5;
+  const cellHeight = cellWidth * 0.4;
 
   return (
     <View style={styles.container}>
@@ -138,30 +137,15 @@ const CalendarHeatmap = () => {
             {rows.map((row, rowIndex) => (
               <View key={rowIndex} style={styles.gridRow}>
                 {row.map((day, colIndex) => (
-                  <View key={colIndex} style={{ width: cellWidth, height: cellHeight }}>
-                    {day !== null && (
-                      <>
-                        <MaskedView
-                          style={{ flex: 1 }}
-                          maskElement={
-                            <View style={{ backgroundColor: 'transparent', flex: 1 }}>
-                              <Image
-                                source={require('@/assets/images/can-heatmap-mask.png')}
-                                resizeMode="contain"
-                                style={{ width: '100%', height: '100%' }}
-                              />
-                            </View>
-                          }>
-                          <View style={{ flex: 1, backgroundColor: getColor(drinksByDay[day] || 0) }} />
-                        </MaskedView>
-                        <Image
-                          source={require('@/assets/images/can-heatmap.png')}
-                          resizeMode="contain"
-                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                        />
-                      </>
-                    )}
-                  </View>
+                  <View
+                    key={colIndex}
+                    style={{
+                      width: cellWidth,
+                      height: cellHeight,
+                      borderRadius: 3,
+                      backgroundColor: day !== null ? getColor(drinksByDay[day] || 0) : 'transparent',
+                    }}
+                  />
                 ))}
               </View>
             ))}
@@ -269,7 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: 2,
   },
 });
 

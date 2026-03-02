@@ -1,7 +1,8 @@
 import { useWrapData, type Period } from '@/hooks/useWrapData';
-import * as Sharing from 'expo-sharing';
+import { CATEGORY_COLORS, CATEGORY_TITLES } from '@/store/store';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as Sharing from 'expo-sharing';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -12,6 +13,30 @@ import {
   View,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
+
+const PIXEL = 10;
+
+function PixelCircle({ size, color }: { size: number; color: string }) {
+  const rows = Math.ceil(size / PIXEL);
+  const r = size / 2;
+
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center' }}>
+      {Array.from({ length: rows }, (_, i) => {
+        const y = (i + 0.5) * PIXEL - r;
+        const half = Math.sqrt(Math.max(0, r * r - y * y));
+        const w = Math.round((half * 2) / PIXEL) * PIXEL;
+        if (w <= 0) return null;
+        return (
+          <View
+            key={i}
+            style={{ width: w, height: PIXEL, backgroundColor: color }}
+          />
+        );
+      })}
+    </View>
+  );
+}
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH - 64;
@@ -61,9 +86,20 @@ export default function WrapDetailScreen() {
 
   const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
 
+  const categoryTitle = useMemo(() => {
+    if (!stats.topCategory) return '';
+    const titles = CATEGORY_TITLES[stats.topCategory] ?? CATEGORY_TITLES['Other'];
+    const seed = `${range.start.toISOString()}:${stats.topCategory}`;
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+    }
+    const idx = Math.abs(hash) % titles.length;
+    return titles[idx];
+  }, [stats.topCategory, range.start]);
+
   return (
     <View style={styles.screen}>
-      {/* Period tabs */}
       <View style={styles.tabs}>
         {(['weekly', 'monthly', 'yearly'] as Period[]).map((p) => (
           <TouchableOpacity
@@ -78,7 +114,6 @@ export default function WrapDetailScreen() {
         ))}
       </View>
 
-      {/* Navigation */}
       <View style={styles.nav}>
         <TouchableOpacity onPress={goBack} style={styles.arrow}>
           <Text style={styles.arrowText}>‹</Text>
@@ -89,7 +124,6 @@ export default function WrapDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Story card */}
       <View style={styles.cardWrapper}>
         <ViewShot
           ref={cardRef}
@@ -100,8 +134,12 @@ export default function WrapDetailScreen() {
           }}
         >
           <View style={[styles.card, { height: CARD_HEIGHT }]}>
-            <View style={styles.cardDecoTop} />
-            <View style={styles.cardDecoBottom} />
+            <View style={styles.cardDecoTop}>
+              <PixelCircle size={180} color="#FF660015" />
+            </View>
+            <View style={styles.cardDecoBottom}>
+              <PixelCircle size={140} color="#FF920815" />
+            </View>
 
             <View style={styles.cardHeader}>
               <Text style={styles.cardBrand}>SODAHOLIC</Text>
@@ -123,35 +161,31 @@ export default function WrapDetailScreen() {
             ) : (
               <View style={styles.cardBody}>
                 <View style={styles.heroSection}>
-                  <Text style={styles.heroNumber}>{stats.drinkCount}</Text>
-                  <Text style={styles.heroUnit}>
-                    {stats.drinkCount === 1 ? 'drink' : 'drinks'}
-                  </Text>
-                </View>
-
-                <View style={styles.volumeCard}>
-                  <Text style={styles.volumeLabel}>Total Volume</Text>
-                  <Text style={styles.volumeValue}>
+                  <Text style={styles.heroLabel}>TOTAL:</Text>
+                  <Text style={styles.heroNumber}>
                     {formatVolume(stats.totalVolume)}
                   </Text>
                 </View>
 
-                <View style={styles.divider} />
+                <View style={[styles.phraseBar, {
+                  backgroundColor: CATEGORY_COLORS[stats.topCategory] || '#3d0530',
+                  borderColor: CATEGORY_COLORS[stats.topCategory] || '#3d0530',
+                }]}>
+                  <Text style={styles.phraseBarText}>{categoryTitle}</Text>
+                </View>
 
-                <View style={styles.topSection}>
-                  <Text style={styles.topSectionLabel}>Most Consumed</Text>
-                  <View style={styles.topBadge}>
-                    <Text style={styles.topBadgeText}>{stats.topCategory}</Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.statBox}>
+                    <Text style={styles.statNumber}>{stats.drinkCount}</Text>
+                    <Text style={styles.statLabel}>
+                      {stats.drinkCount === 1 ? 'drink' : 'drinks'}
+                    </Text>
                   </View>
-                  <Text style={styles.topMeta}>
-                    {stats.topCount}{' '}
-                    {stats.topCount === 1 ? 'drink' : 'drinks'} ·{' '}
-                    {formatVolume(
-                      stats.categories.find(
-                        (c) => c.name === stats.topCategory,
-                      )?.volume ?? 0,
-                    )}
-                  </Text>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statBox}>
+                    <Text style={styles.statNumber}>{stats.topCount}</Text>
+                    <Text style={styles.statLabel}>{stats.topCategory}</Text>
+                  </View>
                 </View>
               </View>
             )}
@@ -164,7 +198,6 @@ export default function WrapDetailScreen() {
         </ViewShot>
       </View>
 
-      {/* Share button */}
       <TouchableOpacity
         style={[styles.shareButton, sharing && styles.shareButtonDisabled]}
         onPress={handleShare}
@@ -214,7 +247,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Silkscreen-Bold',
   },
   tabTextActive: {
-    color: '#0A0A0A',
+    color: '#E5E5E7',
   },
   nav: {
     flexDirection: 'row',
@@ -258,8 +291,7 @@ const styles = StyleSheet.create({
     right: -60,
     width: 180,
     height: 180,
-    borderRadius: 90,
-    backgroundColor: '#FF660015',
+    overflow: 'hidden',
   },
   cardDecoBottom: {
     position: 'absolute',
@@ -267,8 +299,7 @@ const styles = StyleSheet.create({
     left: -40,
     width: 140,
     height: 140,
-    borderRadius: 70,
-    backgroundColor: '#FF920815',
+    overflow: 'hidden',
   },
   cardHeader: {
     alignItems: 'center',
@@ -277,7 +308,7 @@ const styles = StyleSheet.create({
   },
   cardBrand: {
     color: '#FF6600',
-    fontSize: 24,
+    fontSize: 32,
     fontFamily: 'Silkscreen-Bold',
     letterSpacing: 4,
   },
@@ -286,13 +317,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF660020',
     paddingHorizontal: 14,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#FF660040',
   },
   cardPeriodPillText: {
     color: '#FF9248',
-    fontSize: 10,
+    fontSize: 16,
     fontFamily: 'Silkscreen-Bold',
   },
   cardDate: {
@@ -337,76 +368,69 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
+  },
+  heroLabel: {
+    color: '#F5F5F7',
+    fontSize: 18,
+    fontFamily: 'Silkscreen-Bold',
+    letterSpacing: 2,
+    marginBottom: 2,
   },
   heroNumber: {
-    color: '#FF9248',
-    fontSize: 56,
-    fontFamily: 'Silkscreen-Bold',
-    lineHeight: 64,
-  },
-  heroUnit: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontFamily: 'Silkscreen',
-    marginTop: -2,
-  },
-  volumeCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2C2C2E',
-    marginBottom: 12,
-  },
-  volumeLabel: {
-    color: '#636366',
-    fontSize: 8,
-    fontFamily: 'Silkscreen',
-    marginBottom: 3,
-    letterSpacing: 2,
-  },
-  volumeValue: {
     color: '#F5F5F7',
-    fontSize: 20,
+    fontSize: 48,
     fontFamily: 'Silkscreen-Bold',
+    lineHeight: 56,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#2C2C2E',
-    marginBottom: 12,
-  },
-  topSection: {
+  phraseBar: {
+    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 3,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  topSectionLabel: {
-    color: '#636366',
-    fontSize: 8,
+  phraseBarLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 9,
     fontFamily: 'Silkscreen',
     letterSpacing: 2,
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  topBadge: {
-    backgroundColor: '#FF6600',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderWidth: 2,
-    borderColor: '#CC5200',
-  },
-  topBadgeText: {
-    color: '#0A0A0A',
-    fontSize: 14,
+  phraseBarText: {
+    color: '#F5F5F7',
+    fontSize: 16,
     fontFamily: 'Silkscreen-Bold',
+    textAlign: 'center',
   },
-  topMeta: {
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  statBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    color: '#F5F5F7',
+    fontSize: 22,
+    fontFamily: 'Silkscreen-Bold',
+    lineHeight: 28,
+  },
+  statLabel: {
     color: '#636366',
     fontSize: 9,
     fontFamily: 'Silkscreen',
-    marginTop: 6,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  statDivider: {
+    width: 2,
+    height: 30,
+    backgroundColor: '#2C2C2E',
   },
   cardFooter: {
     alignItems: 'center',
@@ -442,7 +466,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   shareButtonText: {
-    color: '#0A0A0A',
+    color: '#E5E5E7',
     fontSize: 14,
     fontFamily: 'Silkscreen-Bold',
     letterSpacing: 1,
