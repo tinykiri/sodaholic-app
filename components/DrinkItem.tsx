@@ -1,7 +1,21 @@
 import store from "@/store/store";
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ImageSourcePropType, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRow, useValue } from "tinybase/ui-react";
+
+const CATEGORY_IMAGES: Record<string, ImageSourcePropType> = {
+  'Classic Soda': require('@/assets/images/classic.png'),
+  'Zero/Diet': require('@/assets/images/zero-diet.png'),
+  'Energy': require('@/assets/images/energy.png'),
+  'Sparkling Water': require('@/assets/images/sparkling.png'),
+  'Other': require('@/assets/images/other.png'),
+};
+
+function formatDate(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 export default function DrinkItem({ id }: { id: string }) {
   const unit = useValue('unit_preferences', store);
@@ -9,20 +23,24 @@ export default function DrinkItem({ id }: { id: string }) {
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const volume = typeof drink.volume_ml === 'number' ? drink.volume_ml : 0;
-
   const displayValue = unit === 'oz'
     ? (volume / 29.57).toFixed(1)
     : volume;
+
+  const dateStr = formatDate(typeof drink.date_of_creation === 'string' ? drink.date_of_creation : '');
+  const category = typeof drink.category_of_drink === 'string' ? drink.category_of_drink : 'Other';
+  const categoryImage = CATEGORY_IMAGES[category] ?? CATEGORY_IMAGES['Other'];
 
   return (
     <>
       <Pressable onPress={() => setConfirmVisible(true)} style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.name}>{drink.name}</Text>
-          <Text style={styles.detail}>
+          <Image source={categoryImage} style={styles.categoryImage} resizeMode="contain" />
+          <Text style={styles.name} numberOfLines={1}>{drink.name}</Text>
+          <Text style={styles.volume}>
             {displayValue} {unit === 'oz' ? 'oz' : 'ml'}
           </Text>
-          <Text style={styles.detail}>{drink.category_of_drink}</Text>
+          <Text style={styles.date}>{dateStr}</Text>
         </View>
       </Pressable>
 
@@ -77,23 +95,37 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   content: {
-    width: 100,
-    height: 100,
-    padding: 8,
+    width: 110,
+    padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
+  },
+  categoryImage: {
+    width: 48,
+    height: 48,
   },
   name: {
     color: '#F5F5F7',
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: 'Silkscreen-Bold',
-    marginBottom: 4,
+    textAlign: 'center',
+  },
+  volume: {
+    color: '#FF9248',
+    fontSize: 12,
+    fontFamily: 'Silkscreen-Bold',
   },
   detail: {
     color: '#8E8E93',
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: 'Silkscreen',
     textAlign: 'center',
+  },
+  date: {
+    color: '#636366',
+    fontSize: 9,
+    fontFamily: 'Silkscreen',
   },
   overlay: {
     flex: 1,

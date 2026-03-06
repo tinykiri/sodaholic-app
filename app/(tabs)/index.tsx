@@ -8,11 +8,11 @@ import { getRangeForPeriod, useWrapData } from '@/hooks/useWrapData';
 import store from '@/store/store';
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRowIds, useValue } from 'tinybase/ui-react';
+import { useSortedRowIds, useValue } from 'tinybase/ui-react';
 
 
 export default function HomeScreen() {
-  const drinksIds = useRowIds('drinks');
+  const drinksIds = useSortedRowIds('drinks', 'date_of_creation', true, 0, 10, store);
   const wrap = useWrapData();
   const seenWeekly = useValue('wrap_seen_weekly', store) as string;
 
@@ -51,7 +51,7 @@ export default function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.recentDrinks}
               >
-                {drinksIds.map(id =>
+                {drinksIds.map((id: string) =>
                   <DrinkItem
                     key={id}
                     id={id}
