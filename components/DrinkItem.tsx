@@ -36,7 +36,7 @@ export default function DrinkItem({ id }: { id: string }) {
       <Pressable onPress={() => setConfirmVisible(true)} style={styles.container}>
         <View style={styles.content}>
           <Image source={categoryImage} style={styles.categoryImage} resizeMode="contain" />
-          <Text style={styles.name} numberOfLines={1}>{drink.name}</Text>
+          <Text style={styles.name} numberOfLines={1}>{drink.name ?? 'Unknown'}</Text>
           <Text style={styles.volume}>
             {displayValue} {unit === 'oz' ? 'oz' : 'ml'}
           </Text>

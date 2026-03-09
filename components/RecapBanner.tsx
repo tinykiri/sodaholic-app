@@ -28,7 +28,8 @@ export default function RecapBanner() {
 
     for (const p of periods) {
       const currentStart = getRangeForPeriod(p, now).start.toISOString();
-      if (seen[p] !== '' && seen[p] !== currentStart) {
+      const val = seen[p] ?? '';
+      if (val !== '' && val !== currentStart) {
         return p;
       }
     }

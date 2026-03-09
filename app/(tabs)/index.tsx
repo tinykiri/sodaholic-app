@@ -16,14 +16,18 @@ export default function HomeScreen() {
   const wrap = useWrapData();
   const seenWeekly = useValue('wrap_seen_weekly', store) as string;
 
+  const seenMonthly = useValue('wrap_seen_monthly', store) as string;
+  const seenYearly = useValue('wrap_seen_yearly', store) as string;
+
   useEffect(() => {
-    if (seenWeekly === '') {
-      const now = new Date();
+    const now = new Date();
+    if (!seenWeekly)
       store.setValue('wrap_seen_weekly', getRangeForPeriod('weekly', now).start.toISOString());
+    if (!seenMonthly)
       store.setValue('wrap_seen_monthly', getRangeForPeriod('monthly', now).start.toISOString());
+    if (!seenYearly)
       store.setValue('wrap_seen_yearly', getRangeForPeriod('yearly', now).start.toISOString());
-    }
-  }, [seenWeekly]);
+  }, [seenWeekly, seenMonthly, seenYearly]);
 
   return (
     <View style={styles.container}>

@@ -8,6 +8,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -16,11 +17,15 @@ import {
   View
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import {
+import Animated, {
   Easing,
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,6 +42,11 @@ export default function AddNewDrink() {
   const unit = useValue('unit_preferences', store);
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const saveScale = useSharedValue(1);
+  const saveAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: saveScale.value }],
+  }));
 
   const drinkVolume = useValue('volume_ml', store);
   const drinkCategory = useValue('category_of_drink', store) ?? TYPE_OF_DRINKS[0].value;
@@ -110,15 +120,25 @@ export default function AddNewDrink() {
       return;
     }
     setError(false);
-    store.addRow('drinks', {
-      name: inputValue,
-      volume_ml: currentVolume,
-      category_of_drink: drinkCategory,
-      date_of_creation: new Date().toISOString(),
-    });
-    setInputValue('');
-    store.setValue('volume_ml', 500);
-    store.setValue('category_of_drink', TYPE_OF_DRINKS[0].value);
+    try {
+      store.addRow('drinks', {
+        name: inputValue,
+        volume_ml: currentVolume,
+        category_of_drink: drinkCategory,
+        date_of_creation: new Date().toISOString(),
+      });
+      setInputValue('');
+      store.setValue('volume_ml', 500);
+      store.setValue('category_of_drink', TYPE_OF_DRINKS[0].value);
+      setSaved(true);
+      saveScale.value = withSequence(
+        withTiming(1.05, { duration: 100 }),
+        withTiming(1, { duration: 100 }),
+      );
+      setTimeout(() => setSaved(false), 1800);
+    } catch (e) {
+      console.error('Failed to save drink:', e);
+    }
   }, [inputValue, currentVolume, drinkCategory]);
 
   const handleQuickAdd = useCallback((volume: number) => {
@@ -132,7 +152,7 @@ export default function AddNewDrink() {
       <BubblesBackground />
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 16 }}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
             <View style={{ flex: 1, gap: 20 }}>
 
               {/* bottle area */}
@@ -248,9 +268,16 @@ export default function AddNewDrink() {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={handleAddNewDrink} style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save Drink</Text>
-              </TouchableOpacity>
+              <Animated.View style={saveAnimStyle}>
+                <TouchableOpacity onPress={handleAddNewDrink} style={styles.saveButton}>
+                  <Text style={styles.saveButtonText}>Save Drink</Text>
+                </TouchableOpacity>
+              </Animated.View>
+              {saved && (
+                <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.savedBanner}>
+                  <Text style={styles.savedBannerText}>Drink saved!</Text>
+                </Animated.View>
+              )}
             </View>
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
@@ -334,6 +361,20 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#F5F5F7',
     fontSize: 18,
+    fontFamily: 'Silkscreen-Bold',
+  },
+  savedBanner: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 6,
+    borderWidth: 3,
+    borderColor: '#00C853',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  savedBannerText: {
+    color: '#00C853',
+    fontSize: 14,
     fontFamily: 'Silkscreen-Bold',
   },
 });

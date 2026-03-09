@@ -118,7 +118,7 @@ export function useWrapData() {
   const [period, setPeriod] = useState<Period>('weekly');
   const [anchor, setAnchor] = useState(new Date());
   const rowIds = useRowIds('drinks', store);
-  const unit = useValue('unit_preferences', store) as string;
+  const unit = (useValue('unit_preferences', store) ?? 'ml') as string;
 
   const range = useMemo<WrapRange>(
     () => getRangeForPeriod(period, anchor),

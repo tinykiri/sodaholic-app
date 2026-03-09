@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { Provider as TinyBaseProvider, useCreatePersister } from 'tinybase/ui-react';
@@ -19,6 +20,7 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+SystemUI.setBackgroundColorAsync('#000000');
 
 function CustomHeader() {
   const insets = useSafeAreaInsets();
@@ -64,9 +66,14 @@ export default function RootLayout() {
       createExpoSqlitePersister(store, SQLite.openDatabaseSync('sodaholic.db')),
     [],
     async (persister) => {
-      await persister.load();
-      await persister.startAutoSave();
-      setReady(true);
+      try {
+        await persister.load();
+        await persister.startAutoSave();
+      } catch (e) {
+        console.error('Failed to load persisted data:', e);
+      } finally {
+        setReady(true);
+      }
     }
   );
 
@@ -90,7 +97,6 @@ export default function RootLayout() {
               contentStyle: { backgroundColor: '#0A0A0A' },
             }}
           />
-          <Stack.Screen name="unit-toggle" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </GestureHandlerRootView>

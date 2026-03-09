@@ -116,16 +116,40 @@ store.setValuesSchema({
 });
 
 if (WS_URL) {
-  (async () => {
+  const MAX_RETRIES = 5;
+  const BASE_DELAY = 2000;
+
+  let retries = 0;
+  let synchronizer: Awaited<ReturnType<typeof createWsSynchronizer>> | null = null;
+
+  async function startSync() {
     try {
-      const ws = new WebSocket(WS_URL);
-      const synchronizer = await createWsSynchronizer(store, ws);
+      const ws = new WebSocket(WS_URL!);
+
+      ws.onclose = () => {
+        synchronizer = null;
+        if (retries < MAX_RETRIES) {
+          const delay = BASE_DELAY * Math.pow(2, retries);
+          retries++;
+          setTimeout(startSync, delay);
+        }
+      };
+
+      synchronizer = await createWsSynchronizer(store, ws);
       await synchronizer.startSync();
+      retries = 0;
       console.log('Syncing started successfully');
     } catch (error) {
       console.error('Failed to start syncing:', error);
+      if (retries < MAX_RETRIES) {
+        const delay = BASE_DELAY * Math.pow(2, retries);
+        retries++;
+        setTimeout(startSync, delay);
+      }
     }
-  })();
+  }
+
+  startSync();
 }
 
 export default store;
