@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useCallback, useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { clamp, runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+
+const HAPTIC_STEP = 50;
 
 const TRACK_HEIGHT = 300;
 const THUMB_SIZE = 30;
@@ -24,6 +27,11 @@ export default function CustomSlider({
   const translateY = useSharedValue(0);
   const context = useSharedValue(0);
   const isDragging = useSharedValue(false);
+  const lastHapticValue = useSharedValue(-1);
+
+  const triggerHaptic = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
 
   useEffect(() => {
     if (isDragging.value) return;
@@ -48,6 +56,11 @@ export default function CustomSlider({
       const ratio = newPos / TRAVEL_DIST;
       const calculatedValue = max - ratio * (max - min);
 
+      if (lastHapticValue.value === -1 || Math.abs(calculatedValue - lastHapticValue.value) >= HAPTIC_STEP) {
+        lastHapticValue.value = calculatedValue;
+        runOnJS(triggerHaptic)();
+      }
+
       if (onValueChange) {
         runOnJS(onValueChange)(Math.round(calculatedValue));
       }
@@ -61,18 +74,16 @@ export default function CustomSlider({
   }));
 
   return (
-    <GestureHandlerRootView>
-      <View style={styles.track}>
-        <GestureDetector gesture={gesture}>
-          <Animated.View style={[styles.thumb, thumbStyle]}>
-            <Image
-              source={require('@/assets/images/slider-thumb.png')}
-              style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
-            />
-          </Animated.View>
-        </GestureDetector>
-      </View>
-    </GestureHandlerRootView>
+    <View style={styles.track}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={[styles.thumb, thumbStyle]}>
+          <Image
+            source={require('@/assets/images/slider-thumb.png')}
+            style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
+          />
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
 

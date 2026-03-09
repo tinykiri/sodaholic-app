@@ -1,4 +1,4 @@
-import store from "@/store/store";
+import store, { ML_PER_OZ } from "@/store/store";
 import { useState } from "react";
 import { Image, ImageSourcePropType, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRow, useValue } from "tinybase/ui-react";
@@ -24,7 +24,7 @@ export default function DrinkItem({ id }: { id: string }) {
 
   const volume = typeof drink.volume_ml === 'number' ? drink.volume_ml : 0;
   const displayValue = unit === 'oz'
-    ? (volume / 29.57).toFixed(1)
+    ? (volume / ML_PER_OZ).toFixed(1)
     : volume;
 
   const dateStr = formatDate(typeof drink.date_of_creation === 'string' ? drink.date_of_creation : '');
@@ -115,12 +115,6 @@ const styles = StyleSheet.create({
     color: '#FF9248',
     fontSize: 12,
     fontFamily: 'Silkscreen-Bold',
-  },
-  detail: {
-    color: '#8E8E93',
-    fontSize: 9,
-    fontFamily: 'Silkscreen',
-    textAlign: 'center',
   },
   date: {
     color: '#636366',

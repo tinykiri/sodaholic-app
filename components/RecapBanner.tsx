@@ -5,12 +5,6 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useValue } from 'tinybase/ui-react';
 
-const PERIOD_LABELS: Record<Period, string> = {
-  weekly: 'weekly',
-  monthly: 'monthly',
-  yearly: 'yearly',
-};
-
 const SEEN_KEYS: Record<Period, 'wrap_seen_weekly' | 'wrap_seen_monthly' | 'wrap_seen_yearly'> = {
   weekly: 'wrap_seen_weekly',
   monthly: 'wrap_seen_monthly',
@@ -53,7 +47,7 @@ export default function RecapBanner() {
   return (
     <TouchableOpacity style={styles.banner} activeOpacity={0.8} onPress={handlePress}>
       <Text style={styles.bannerText}>
-        Your {PERIOD_LABELS[pending]} recap is ready, check it out!
+        Your {pending} recap is ready, check it out!
       </Text>
     </TouchableOpacity>
   );

@@ -1,6 +1,4 @@
-import * as SQLite from 'expo-sqlite';
 import { createMergeableStore } from 'tinybase';
-import { createExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
 import { createWsSynchronizer } from 'tinybase/synchronizers/synchronizer-ws-client';
 
 export const TYPE_OF_DRINKS = [
@@ -93,33 +91,23 @@ export const CATEGORY_TITLES: Record<string, string[]> = {
   ],
 };
 
-export const UNITS = {
-  ML: 'ml',
-  OZ: 'oz',
-};
+export const ML_PER_OZ = 29.5735;
 
 const store = createMergeableStore();
 
-const WS_URL = process.env.EXPO_PUBLIC_WS_URL as string;
+const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 
 store.setTablesSchema({
   drinks: {
-    date_of_creation: { type: 'string', default: new Date().toISOString() },
+    date_of_creation: { type: 'string', default: '' },
     name: { type: 'string' },
     category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
     volume_ml: { type: 'number', default: 500 },
   },
-  wraps: {
-    period_id: { type: 'string' },
-    type: { type: 'string' },         // weekly, monthly, yearly
-    total_volume: { type: 'number' },
-    top_category: { type: 'string' },
-  }
 });
 
 store.setValuesSchema({
   unit_preferences: { type: 'string', default: 'ml' },
-  name: { type: 'string' },
   volume_ml: { type: 'number', default: 500 },
   category_of_drink: { type: 'string', default: TYPE_OF_DRINKS[0].value },
   wrap_seen_weekly: { type: 'string', default: '' },
@@ -127,28 +115,17 @@ store.setValuesSchema({
   wrap_seen_yearly: { type: 'string', default: '' },
 });
 
-async function init() {
-  try {
-    const db = await SQLite.openDatabaseAsync('sodaholic.db');
-    const persister = createExpoSqlitePersister(store, db);
-    await persister.load();
-    await persister.startAutoSave();
-    console.log('Local persistence started');
-  } catch (error) {
-    console.error('Failed to start persister:', error);
-  }
-
-  try {
-    const ws = new WebSocket(WS_URL);
-    const synchronizer = await createWsSynchronizer(store, ws);
-    await synchronizer.startSync();
-    console.log('Syncing started successfully');
-  } catch (error) {
-    console.error('Failed to start syncing:', error);
-  }
+if (WS_URL) {
+  (async () => {
+    try {
+      const ws = new WebSocket(WS_URL);
+      const synchronizer = await createWsSynchronizer(store, ws);
+      await synchronizer.startSync();
+      console.log('Syncing started successfully');
+    } catch (error) {
+      console.error('Failed to start syncing:', error);
+    }
+  })();
 }
-
-init();
-
 
 export default store;

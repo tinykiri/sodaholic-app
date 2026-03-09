@@ -1,5 +1,5 @@
-import store, { TYPE_OF_DRINKS } from '@/store/store';
-import { useMemo, useState } from 'react';
+import store, { ML_PER_OZ, TYPE_OF_DRINKS } from '@/store/store';
+import { useCallback, useMemo, useState } from 'react';
 import { useRowIds, useValue } from 'tinybase/ui-react';
 
 export type Period = 'weekly' | 'monthly' | 'yearly';
@@ -114,11 +114,6 @@ function computeStats(rowIds: string[], range: WrapRange): WrapStats {
   return { totalVolume, drinkCount, topCategory, topCount, categories };
 }
 
-export interface PeriodPreview {
-  stats: WrapStats;
-  range: WrapRange;
-}
-
 export function useWrapData() {
   const [period, setPeriod] = useState<Period>('weekly');
   const [anchor, setAnchor] = useState(new Date());
@@ -135,30 +130,19 @@ export function useWrapData() {
     [rowIds, range],
   );
 
-  const previews = useMemo<Record<Period, PeriodPreview>>(() => {
-    const now = new Date();
-    const periods: Period[] = ['weekly', 'monthly', 'yearly'];
-    const result = {} as Record<Period, PeriodPreview>;
-    for (const p of periods) {
-      const r = getRangeForPeriod(p, now);
-      result[p] = { range: r, stats: computeStats(rowIds, r) };
-    }
-    return result;
-  }, [rowIds]);
-
-  const formatVolume = (ml: number) => {
-    if (unit === 'oz') return `${(ml / 29.5735).toFixed(1)} oz`;
+  const formatVolume = useCallback((ml: number) => {
+    if (unit === 'oz') return `${(ml / ML_PER_OZ).toFixed(1)} oz`;
     if (ml >= 1000) return `${(ml / 1000).toFixed(1)}L`;
     return `${ml} ml`;
-  };
+  }, [unit]);
 
-  const selectPeriod = (p: Period) => {
+  const selectPeriod = useCallback((p: Period) => {
     setPeriod(p);
     setAnchor(new Date());
-  };
+  }, []);
 
-  const goBack = () => setAnchor((a) => navigatePeriod(a, period, -1));
-  const goForward = () => setAnchor((a) => navigatePeriod(a, period, 1));
+  const goBack = useCallback(() => setAnchor((a) => navigatePeriod(a, period, -1)), [period]);
+  const goForward = useCallback(() => setAnchor((a) => navigatePeriod(a, period, 1)), [period]);
 
-  return { period, range, stats, previews, formatVolume, selectPeriod, goBack, goForward };
+  return { period, range, stats, formatVolume, selectPeriod, goBack, goForward };
 }

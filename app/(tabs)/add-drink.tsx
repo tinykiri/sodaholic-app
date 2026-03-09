@@ -1,9 +1,9 @@
 import BubblesBackground from '@/components/BubblesBackground';
 import CustomSlider from '@/components/CustomSlider';
-import store, { TYPE_OF_DRINKS } from '@/store/store';
+import store, { ML_PER_OZ, TYPE_OF_DRINKS } from '@/store/store';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { Canvas, Group, Rect, Skia } from '@shopify/react-native-skia';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Keyboard,
@@ -31,6 +31,7 @@ const WAVE_HEIGHT = 3;
 const WAVE_COUNT = 2;
 const PIXEL_SIZE = 2;
 const BOTTLE_DIMS = { width: 120, height: 300 };
+const TILT = 0.06;
 
 export default function AddNewDrink() {
   const unit = useValue('unit_preferences', store);
@@ -87,8 +88,6 @@ export default function AddNewDrink() {
     fillSV.value = withTiming(fillPercent, { duration: 80 });
   }, [fillPercent]);
 
-  const TILT = 0.06;
-
   const wavePath = useDerivedValue(() => {
     const p = Skia.Path.MakeFromSVGString(waveSvgPath);
     if (!p) return Skia.Path.Make();
@@ -102,33 +101,31 @@ export default function AddNewDrink() {
   });
 
   const displayValue = unit === 'oz'
-    ? (currentVolume / 29.57).toFixed(1)
+    ? (currentVolume / ML_PER_OZ).toFixed(1)
     : currentVolume;
 
-  const handleAddNewDrink = () => {
+  const handleAddNewDrink = useCallback(() => {
     if (!inputValue.trim()) {
       setError(true);
       return;
     }
     setError(false);
-    store.addRow('drinks',
-      {
-        name: inputValue,
-        volume_ml: currentVolume,
-        category_of_drink: drinkCategory
-      });
+    store.addRow('drinks', {
+      name: inputValue,
+      volume_ml: currentVolume,
+      category_of_drink: drinkCategory,
+      date_of_creation: new Date().toISOString(),
+    });
     setInputValue('');
     store.setValue('volume_ml', 500);
     store.setValue('category_of_drink', TYPE_OF_DRINKS[0].value);
-  };
+  }, [inputValue, currentVolume, drinkCategory]);
 
-  const handleQuickAdd = (volume: number) => {
+  const handleQuickAdd = useCallback((volume: number) => {
     store.setValue('volume_ml', volume);
-  };
+  }, []);
 
-  const setVolume = (val: number) => store.setValue('volume_ml', val);
-
-  const bottleDims = BOTTLE_DIMS;
+  const setVolume = useCallback((val: number) => store.setValue('volume_ml', val), []);
 
   return (
     <View style={styles.container}>
@@ -142,7 +139,7 @@ export default function AddNewDrink() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '55%' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 36 }}>
 
-                  <View style={{ width: bottleDims.width, height: bottleDims.height, position: 'relative' }}>
+                  <View style={{ width: BOTTLE_DIMS.width, height: BOTTLE_DIMS.height, position: 'relative' }}>
 
                     <MaskedView
                       style={{ flex: 1, height: '100%' }}
@@ -150,18 +147,18 @@ export default function AddNewDrink() {
                         <View style={{ backgroundColor: 'transparent', flex: 1 }}>
                           <Image
                             source={require('@/assets/images/bottle-mask.png')}
-                            style={{ ...bottleDims }}
+                            style={{ ...BOTTLE_DIMS }}
                           />
                         </View>
                       }
                     >
-                      <Canvas style={{ width: bottleDims.width, height: bottleDims.height }}>
+                      <Canvas style={{ width: BOTTLE_DIMS.width, height: BOTTLE_DIMS.height }}>
                         <Group clip={wavePath}>
                           <Rect
                             x={0}
                             y={0}
-                            width={bottleDims.width}
-                            height={bottleDims.height}
+                            width={BOTTLE_DIMS.width}
+                            height={BOTTLE_DIMS.height}
                             color="#FF6600"
                           />
                         </Group>
@@ -170,7 +167,7 @@ export default function AddNewDrink() {
 
                     <Image
                       source={require('@/assets/images/slider-bottle.png')}
-                      style={{ position: 'absolute', top: 0, left: 0, ...bottleDims }}
+                      style={{ position: 'absolute', top: 0, left: 0, ...BOTTLE_DIMS }}
                     />
                   </View>
 
@@ -179,7 +176,7 @@ export default function AddNewDrink() {
                     onValueChange={setVolume}
                   />
                 </View>
-                <View>
+                <View style={{ width: '100%', marginLeft: 20 }}>
 
                   {/* info area */}
                   <View style={{ alignItems: 'center', gap: 10 }}>

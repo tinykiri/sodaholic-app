@@ -1,3 +1,4 @@
+import PixelCircle from '@/components/PixelCircle';
 import { useWrapData, type Period } from '@/hooks/useWrapData';
 import { CATEGORY_COLORS, CATEGORY_TITLES } from '@/store/store';
 import { useLocalSearchParams } from 'expo-router';
@@ -13,30 +14,6 @@ import {
   View,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-
-const PIXEL = 10;
-
-function PixelCircle({ size, color }: { size: number; color: string }) {
-  const rows = Math.ceil(size / PIXEL);
-  const r = size / 2;
-
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center' }}>
-      {Array.from({ length: rows }, (_, i) => {
-        const y = (i + 0.5) * PIXEL - r;
-        const half = Math.sqrt(Math.max(0, r * r - y * y));
-        const w = Math.round((half * 2) / PIXEL) * PIXEL;
-        if (w <= 0) return null;
-        return (
-          <View
-            key={i}
-            style={{ width: w, height: PIXEL, backgroundColor: color }}
-          />
-        );
-      })}
-    </View>
-  );
-}
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH - 64;
@@ -60,7 +37,7 @@ export default function WrapDetailScreen() {
     if (initialPeriod && ['weekly', 'monthly', 'yearly'].includes(initialPeriod)) {
       selectPeriod(initialPeriod as Period);
     }
-  }, []);
+  }, [initialPeriod, selectPeriod]);
 
   const handleShare = useCallback(async () => {
     if (!cardRef.current?.capture) return;
@@ -390,13 +367,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     alignItems: 'center',
     marginBottom: 14,
-  },
-  phraseBarLabel: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 9,
-    fontFamily: 'Silkscreen',
-    letterSpacing: 2,
-    marginBottom: 4,
   },
   phraseBarText: {
     color: '#F5F5F7',

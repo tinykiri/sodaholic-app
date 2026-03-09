@@ -54,10 +54,10 @@ const CalendarHeatmap = () => {
     return result;
   }, [daysInMonth]);
 
-  const monthLabel = new Date(year, month).toLocaleString('default', {
-    month: 'long',
-    year: 'numeric',
-  });
+  const monthLabel = useMemo(
+    () => new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' }),
+    [year, month],
+  );
 
   const goBack = useCallback(() => {
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
@@ -69,38 +69,30 @@ const CalendarHeatmap = () => {
     else setMonth(m => m + 1);
   }, [month]);
 
-  const flingLeft = Gesture.Fling()
-    .direction(Directions.LEFT)
-    .runOnJS(true)
-    .onEnd(() => goForward());
-
-  const flingRight = Gesture.Fling()
-    .direction(Directions.RIGHT)
-    .runOnJS(true)
-    .onEnd(() => goBack());
-
-  const swipeGesture = Gesture.Race(flingLeft, flingRight);
+  const swipeGesture = useMemo(
+    () => Gesture.Race(
+      Gesture.Fling().direction(Directions.LEFT).runOnJS(true).onEnd(() => goForward()),
+      Gesture.Fling().direction(Directions.RIGHT).runOnJS(true).onEnd(() => goBack()),
+    ),
+    [goBack, goForward],
+  );
 
   const streak = useMemo(() => {
-    let count = 0;
+    const dateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+
+    const datesWithDrinks = new Set<string>();
+    for (const id of rowIds) {
+      const row = store.getRow('drinks', id);
+      if (!row.date_of_creation) continue;
+      datesWithDrinks.add(dateKey(new Date(row.date_of_creation as string)));
+    }
+
     const today = new Date();
+    if (!datesWithDrinks.has(dateKey(today))) return 0;
 
-    const hasDrinksOn = (y: number, m: number, d: number) =>
-      rowIds.some((id) => {
-        const row = store.getRow('drinks', id);
-        if (!row.date_of_creation) return false;
-        const c = new Date(row.date_of_creation as string);
-        return c.getFullYear() === y && c.getMonth() === m && c.getDate() === d;
-      });
-
-    const todayY = today.getFullYear();
-    const todayM = today.getMonth();
-    const todayD = today.getDate();
-
-    if (hasDrinksOn(todayY, todayM, todayD)) count++;
-
-    let d = new Date(todayY, todayM, todayD - 1);
-    while (hasDrinksOn(d.getFullYear(), d.getMonth(), d.getDate())) {
+    let count = 1;
+    let d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    while (datesWithDrinks.has(dateKey(d))) {
       count++;
       d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
     }

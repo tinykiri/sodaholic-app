@@ -1,3 +1,4 @@
+import PixelCircle from '@/components/PixelCircle';
 import React, { useEffect, useMemo } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -20,45 +21,6 @@ interface Bubble {
   startY: number;
   delay: number;
   duration: number;
-}
-
-function PixelBubble({ size, color, borderColor }: { size: number; color: string; borderColor: string }) {
-  const rows = Math.ceil(size / PX);
-  const r = size / 2;
-
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center' }}>
-      {Array.from({ length: rows }, (_, i) => {
-        const y = (i + 0.5) * PX - r;
-        const half = Math.sqrt(Math.max(0, r * r - y * y));
-        const w = Math.round((half * 2) / PX) * PX;
-        if (w <= 0) return null;
-        const isEdge = i === 0 || i === rows - 1 ||
-          Math.round((Math.sqrt(Math.max(0, r * r - ((i + 1.5) * PX - r) ** 2)) * 2) / PX) * PX !== w ||
-          Math.round((Math.sqrt(Math.max(0, r * r - ((i - 0.5) * PX - r) ** 2)) * 2) / PX) * PX !== w;
-
-        return (
-          <View key={i} style={{ width: w, height: PX, flexDirection: 'row' }}>
-            {isEdge ? (
-              <>
-                <View style={{ width: PX, height: PX, backgroundColor: borderColor }} />
-                <View style={{ flex: 1, height: PX, backgroundColor: color }} />
-                {w > PX && (
-                  <View style={{ width: PX, height: PX, backgroundColor: borderColor }} />
-                )}
-              </>
-            ) : (
-              <>
-                <View style={{ width: PX, height: PX, backgroundColor: borderColor }} />
-                <View style={{ flex: 1, height: PX, backgroundColor: color }} />
-                <View style={{ width: PX, height: PX, backgroundColor: borderColor }} />
-              </>
-            )}
-          </View>
-        );
-      })}
-    </View>
-  );
 }
 
 function AnimatedBubbleView({ bubble }: { bubble: Bubble }) {
@@ -110,10 +72,11 @@ function AnimatedBubbleView({ bubble }: { bubble: Bubble }) {
         animatedStyle,
       ]}
     >
-      <PixelBubble
+      <PixelCircle
         size={snappedSize}
         color="rgba(255, 102, 0, 0.06)"
         borderColor="rgba(255, 102, 0, 0.08)"
+        pixelSize={PX}
       />
     </Animated.View>
   );
