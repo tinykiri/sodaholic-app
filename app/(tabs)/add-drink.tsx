@@ -28,7 +28,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useValue } from 'tinybase/ui-react';
 
 const MAX_VOLUME = 2000;
@@ -39,6 +39,7 @@ const BOTTLE_DIMS = { width: 120, height: 300 };
 const TILT = 0.06;
 
 export default function AddNewDrink() {
+  const insets = useSafeAreaInsets();
   const unit = useValue('unit_preferences', store);
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(false);
@@ -150,7 +151,7 @@ export default function AddNewDrink() {
   return (
     <View style={styles.container}>
       <BubblesBackground />
-      <SafeAreaView style={{ flex: 1, paddingHorizontal: 16 }}>
+      <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: insets.top }}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
             <View style={{ flex: 1, gap: 20 }}>
@@ -281,7 +282,7 @@ export default function AddNewDrink() {
             </View>
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
