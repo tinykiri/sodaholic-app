@@ -35,7 +35,7 @@ The home screen at a glance:
 - **Recap banner** — appears when a new wrap is available to view.
 
 <p align="center">
-  <img src="assets/screenshots/dashboard.png" width="300" alt="Dashboard screen"/>
+  <img src="assets/screenshots/dashboard.PNG" width="300" alt="Dashboard screen"/>
 </p>
 
 ---
@@ -52,9 +52,9 @@ The logging screen:
 - **Unit toggle** — switch between ml and oz at any time.
 
 <p align="center">
-  <img src="assets/screenshots/add-drink.png" width="300" alt="Add drink screen"/>
+  <img src="assets/screenshots/add-drink.PNG" width="300" alt="Add drink screen"/>
   &nbsp;&nbsp;
-  <img src="assets/screenshots/bottle-animation.gif" width="300" alt="Bottle fill animation"/>
+  <img src="assets/screenshots/bottle-animation.PNG" width="300" alt="Bottle fill animation"/>
 </p>
 
 ---
@@ -72,7 +72,7 @@ A full-screen summary modal that recaps your consumption over a period:
 - **Share button** — captures the card as an image and opens the native share sheet.
 
 <p align="center">
-  <img src="assets/screenshots/wrap.png" width="300" alt="Wrap summary card"/>
+  <img src="assets/screenshots/wrap.PNG" width="300" alt="Wrap summary card"/>
 </p>
 
 ---
